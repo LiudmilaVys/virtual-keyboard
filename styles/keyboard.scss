@@ -1,0 +1,33 @@
+@use "./variables" as variables;
+
+#keyboard {
+    width: 704px;
+    margin: 0 auto;
+    padding: 5px;
+    padding-left: 0;
+    padding-bottom: 0;
+    background: variables.$background-color;
+    border: 3px solid variables.$border-color;
+    border-radius: 5px;
+
+    .keyboard-row {
+        width: 100%;
+        height: 40px;
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+
+        .key {
+            width: 40px;
+            height: 40px;
+            margin-left: 6px;
+            font-weight: 500;
+            line-height: 40px;
+            text-align: center;
+            background: variables.$key-color;
+            border-radius: 3px;
+            cursor: pointer;
+            user-select: none;
+        }
+    }
+}
