@@ -1,6 +1,7 @@
 /* eslint-disable require-jsdoc */
 import {KEYBOARD_STRUCTURE, KEY_MAP} from './consts';
 
+const USER_PREF = {LANG_RUS: 'LANG_RUS'};
 let capsLockIsOn = false;
 let isEnglish = true;
 
@@ -80,12 +81,31 @@ function buildTextArea() {
   document.getElementById('textarea').focus();
 }
 
+function toggleLang() {
+  document.querySelector('#keyboard').classList.toggle('alt-keyboard');
+  isEnglish = !isEnglish;
+  window.localStorage.setItem(USER_PREF.LANG_RUS, !isEnglish);
+}
+
 function putKeyboardEventHandlers() {
   const textarea = document.querySelector('#textarea');
 
   document.addEventListener('keydown', (event) => {
     const code = event.code;
-    document.querySelector(`div[data-code="${code}"]`).classList.toggle('pressed');
+
+    switch (code) {
+      case (KEY_MAP[code].altWhich):
+      { // eslint-disable-next-line max-len
+        document.querySelector(`div[data-code="${code}"]${capsLockIsOn ? '.upper-case-key':'.lower-case-key'}`)
+            .classList.toggle('pressed');
+        break;
+      }
+      default: {
+        document.querySelector(`div[data-code="${code}"]`)
+            .classList.toggle('pressed');
+      }
+    }
+
     textarea.focus();
   }, false);
 
@@ -99,13 +119,19 @@ function putKeyboardEventHandlers() {
         capsLockIsOn = !capsLockIsOn;
         break;
       }
+      case (KEY_MAP[code].altWhich):
+      { // eslint-disable-next-line max-len
+        document.querySelector(`div[data-code="${code}"]${capsLockIsOn ? '.upper-case-key':'.lower-case-key'}`)
+            .classList.remove('pressed');
+        break;
+      }
       case 'ControlLeft':
       {
-        if (event.altKey) {
-          document.querySelector('#keyboard').classList.toggle('alt-keyboard');
-          isEnglish = !isEnglish;
-        }
-        break;
+        if (event.altKey) toggleLang();
+      }
+      case 'AltLeft':
+      {
+        if (event.ctrlKey) toggleLang();
       }
       default: {
         document.querySelector(`div[data-code="${code}"]`)
@@ -198,9 +224,19 @@ function putKeyClickEventHandlers() {
   }
 }
 
+function loadUserPreferences() {
+  const isRussian = window.localStorage.getItem(USER_PREF.LANG_RUS);
+  isEnglish = isRussian !== 'true';
+  if (!isEnglish) {
+    document.querySelector('#keyboard')
+        .classList.add('alt-keyboard');
+  }
+}
+
 document.addEventListener('DOMContentLoaded', ()=>{
   buildKeyboard();
   buildTextArea();
+  loadUserPreferences();
 
   const p1 = document.createElement('p');
   p1.classList.add('notification');
