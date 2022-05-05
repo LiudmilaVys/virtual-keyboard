@@ -4,8 +4,9 @@
     width: 704px;
     margin: 0 auto;
     padding: 5px;
-    padding-left: 0;
+    padding-left: 6px;
     padding-bottom: 0;
+    box-sizing: border-box;
     background-color: variables.$background-color;
     border: 3px solid variables.$border-color;
     border-radius: 5px;
@@ -16,11 +17,11 @@
         margin-bottom: 8px;
         display: flex;
         justify-content: space-between;
+        gap: 6px;
 
         .key {
             width: 40px;
             height: 40px;
-            margin-left: 6px;
             font-weight: 500;
             line-height: 40px;
             text-align: center;
@@ -33,6 +34,33 @@
             &.pressed {
                 background-color: variables.$border-color;
             }
+        }
+
+        .alt-key {
+            display: none;
+        }
+
+        .upper-case-key {
+            display: none;
+        }
+    }
+
+    &.upper-case {
+        .lower-case-key {
+            display: none;
+        }
+        .upper-case-key {
+            display: block;
+        }
+    }
+
+    &.alt-keyboard {
+        .eng-key {
+            display: none;
+        }
+
+        .alt-key {
+            display: block;
         }
     }
 }
