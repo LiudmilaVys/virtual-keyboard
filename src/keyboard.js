@@ -204,6 +204,47 @@ function putKeyClickEventHandlers() {
           capsLockIsOn = !capsLockIsOn;
           break;
         }
+        case 'ArrowLeft': {
+          if (textarea.selectionStart < textarea.selectionEnd) {
+            textarea.selectionEnd = textarea.selectionStart;
+          } else if (textarea.selectionStart != 0) {
+            textarea.selectionStart = textarea.selectionStart - 1;
+            textarea.selectionEnd = textarea.selectionStart;
+          }
+          break;
+        }
+        case 'ArrowRight': {
+          if (textarea.selectionStart < textarea.selectionEnd) {
+            textarea.selectionStart = textarea.selectionStart + 1;
+            textarea.selectionEnd = textarea.selectionStart;
+          } else if (textarea.selectionStart != 0) {
+            textarea.selectionStart = textarea.selectionStart + 1;
+            textarea.selectionEnd = textarea.selectionStart;
+          }
+          break;
+        }
+        case 'ArrowUp': {
+          let prevCarriageTransfer = textarea.value
+              .substring(0, textarea.selectionStart)
+              .split('').reverse().join('').indexOf('\n');
+          if (prevCarriageTransfer == -1) prevCarriageTransfer = 0;
+          textarea.selectionStart = prevCarriageTransfer;
+          textarea.selectionEnd = textarea.selectionStart;
+          break;
+        }
+        case 'ArrowDown': {
+          let prevCarriageTransfer = textarea.value
+              .substring(0, textarea.selectionStart)
+              .split('').reverse().join('').indexOf('\n');
+          if (prevCarriageTransfer == -1) prevCarriageTransfer = 0;
+          const nextCarriageTransfer = textarea.value
+              .substring(textarea.selectionStart).indexOf('\n') +
+              textarea.selectionStart;
+          const shiftFromLeft = textarea.selectionStart - prevCarriageTransfer;
+          textarea.selectionStart = nextCarriageTransfer + 1 + shiftFromLeft;
+          textarea.selectionEnd = textarea.selectionStart;
+          break;
+        }
         default:
         {
           let newChar =
