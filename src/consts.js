@@ -232,7 +232,6 @@ export const KEY_MAP = {
   },
   'Enter': {
     'key': 'Enter',
-    'which': 0x0A,
     'code': 'Enter',
   },
   'Quote': {

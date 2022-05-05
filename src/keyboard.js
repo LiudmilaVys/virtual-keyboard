@@ -156,6 +156,16 @@ function putKeyClickEventHandlers() {
       const code = event.target.dataset.code;
 
       switch (code) {
+        case 'Enter': {
+          const selectionStart = textarea.selectionStart;
+          textarea.value = textarea.value .substring(0, selectionStart) +
+         '\n' + textarea.value .substring(selectionStart);
+          textarea.selectionStart = selectionStart + 1;
+          textarea.selectionEnd = textarea.selectionStart;
+          document.querySelector(`div[data-code="${code}"]`)
+              .classList.remove('pressed');
+          break;
+        }
         case 'Backspace':
         {
           const selectionStart = textarea.selectionStart;
@@ -255,7 +265,7 @@ function putKeyClickEventHandlers() {
           newChar +
           textarea.value .substring(selectionStart);
           textarea.selectionStart = selectionStart + 1;
-          textarea.selectionEnd = selectionStart + 1;
+          textarea.selectionEnd = textarea.selectionStart;
           document.querySelector(`div[data-code="${code}"]`)
               .classList.remove('pressed');
         }
