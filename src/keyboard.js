@@ -76,9 +76,9 @@ function buildKeyboard() {
 function buildTextArea() {
   const textarea = document.createElement('textarea');
   textarea.id = 'textarea';
+  textarea.autofocus = true;
 
   document.querySelector('body').prepend(textarea);
-  document.getElementById('textarea').focus();
 }
 
 function toggleLang() {
@@ -87,39 +87,52 @@ function toggleLang() {
   window.localStorage.setItem(USER_PREF.LANG_RUS, !isEnglish);
 }
 
-function putKeyboardEventHandlers() {
-  const textarea = document.querySelector('#textarea');
+function toggleUpperCase() {
+  document.querySelector('#keyboard').classList.toggle('upper-case');
+  capsLockIsOn = !capsLockIsOn;
+}
 
+function putKeyboardEventHandlers() {
   document.addEventListener('keydown', (event) => {
     const code = event.code;
 
+    if (!code) return;
+
     switch (code) {
-      case (KEY_MAP[code].altWhich):
+      case (KEY_MAP[code]['altWhich']):
       { // eslint-disable-next-line max-len
         document.querySelector(`div[data-code="${code}"]${capsLockIsOn ? '.upper-case-key':'.lower-case-key'}`)
             .classList.toggle('pressed');
         break;
+      }
+      case 'ShiftLeft':
+      case 'ShiftRight': {
+        toggleUpperCase();
+      }
+      case 'Tab': {
+        event.preventDefault();
+        document.querySelector('div[data-code="Tab"]')
+            .dispatchEvent(new KeyboardEvent('mouseup', KEY_MAP[code]));
       }
       default: {
         document.querySelector(`div[data-code="${code}"]`)
             .classList.toggle('pressed');
       }
     }
-
-    textarea.focus();
   }, false);
 
   document.addEventListener('keyup', (event) => {
     const code = event.code;
 
+    if (!code) return;
+
     switch (code) {
       case 'CapsLock':
       {
-        document.querySelector('#keyboard').classList.toggle('upper-case');
-        capsLockIsOn = !capsLockIsOn;
+        toggleUpperCase();
         break;
       }
-      case (KEY_MAP[code].altWhich):
+      case (KEY_MAP[code]['altWhich']):
       { // eslint-disable-next-line max-len
         document.querySelector(`div[data-code="${code}"]${capsLockIsOn ? '.upper-case-key':'.lower-case-key'}`)
             .classList.remove('pressed');
@@ -132,6 +145,10 @@ function putKeyboardEventHandlers() {
       case 'AltLeft':
       {
         if (event.ctrlKey) toggleLang();
+      }
+      case 'ShiftLeft':
+      case 'ShiftRight': {
+        toggleUpperCase();
       }
       default: {
         document.querySelector(`div[data-code="${code}"]`)
@@ -148,7 +165,9 @@ function putKeyClickEventHandlers() {
 
   for (const key of keys) {
     key.addEventListener('mousedown', (event) => {
+      event.preventDefault();
       const code = event.target.dataset.code;
+
       document.dispatchEvent(new KeyboardEvent('keydown', KEY_MAP[code]));
     }, false);
 
@@ -156,14 +175,21 @@ function putKeyClickEventHandlers() {
       const code = event.target.dataset.code;
 
       switch (code) {
+        case 'CapsLock':
+        case 'ShiftLeft':
+        case 'ControlLeft':
+        case 'MetaLeft':
+        case 'AltLeft':
+        case 'ShiftRight':
+        case 'ControlRight':
+        case 'AltRight':
+          break;
         case 'Enter': {
           const selectionStart = textarea.selectionStart;
           textarea.value = textarea.value .substring(0, selectionStart) +
          '\n' + textarea.value .substring(selectionStart);
           textarea.selectionStart = selectionStart + 1;
           textarea.selectionEnd = textarea.selectionStart;
-          document.querySelector(`div[data-code="${code}"]`)
-              .classList.remove('pressed');
           break;
         }
         case 'Backspace':
@@ -184,8 +210,6 @@ function putKeyClickEventHandlers() {
             textarea.selectionStart = selectionStart - 1;
             textarea.selectionEnd = selectionStart - 1;
           }
-          document.querySelector(`div[data-code="${code}"]`)
-              .classList.remove('pressed');
           break;
         }
         case 'Delete':
@@ -204,14 +228,6 @@ function putKeyClickEventHandlers() {
           }
           textarea.selectionStart = selectionStart;
           textarea.selectionEnd = selectionStart;
-          document.querySelector(`div[data-code="${code}"]`)
-              .classList.remove('pressed');
-          break;
-        }
-        case 'CapsLock':
-        {
-          document.querySelector('#keyboard').classList.toggle('upper-case');
-          capsLockIsOn = !capsLockIsOn;
           break;
         }
         case 'ArrowLeft': {
@@ -257,20 +273,27 @@ function putKeyClickEventHandlers() {
         }
         default:
         {
-          let newChar =
-           String.fromCharCode( KEY_MAP[code][isEnglish? 'which': 'altWhich']);
+          let newChar;
+          if (!isEnglish && KEY_MAP[code]['altWhich']) {
+            newChar = String.fromCharCode( KEY_MAP[code]['altWhich']);
+          } else {
+            newChar = String.fromCharCode( KEY_MAP[code]['which']);
+          }
           if (capsLockIsOn) newChar = newChar.toUpperCase();
+
+          if (textarea != document.activeElement) {
+            textarea.selectionStart = textarea.value.length;
+          }
           const selectionStart = textarea.selectionStart;
           textarea.value = textarea.value .substring(0, selectionStart) +
           newChar +
           textarea.value .substring(selectionStart);
           textarea.selectionStart = selectionStart + 1;
           textarea.selectionEnd = textarea.selectionStart;
-          document.querySelector(`div[data-code="${code}"]`)
-              .classList.remove('pressed');
         }
       }
-      textarea.focus();
+
+      document.dispatchEvent(new KeyboardEvent('keyup', KEY_MAP[code]));
     }, false);
   }
 }
