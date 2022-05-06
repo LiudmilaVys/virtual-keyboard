@@ -36,6 +36,10 @@
             }
         }
 
+        .shift-key {
+            display: none;
+        }
+
         .alt-key {
             display: none;
         }
@@ -60,6 +64,16 @@
         }
 
         .alt-key {
+            display: block;
+        }
+    }
+
+    &.shift-enabled {
+        .non-shift-key {
+            display: none;
+        }
+
+        .shift-key {
             display: block;
         }
     }

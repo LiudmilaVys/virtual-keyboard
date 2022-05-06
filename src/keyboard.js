@@ -18,6 +18,7 @@ function buildKeyboard() {
 
     for (let j = 0; j< KEYBOARD_STRUCTURE[i].length; j++) {
       if (KEYBOARD_STRUCTURE[i][j].languageSensitive) {
+        // english character
         const container = document.createElement('div');
         container.classList.add('eng-key');
 
@@ -36,8 +37,23 @@ function buildKeyboard() {
         upperCaseKey.style['flex-grow'] = KEYBOARD_STRUCTURE[i][j].grow;
         upperCaseKey.dataset.code = code;
         container.append(upperCaseKey);
+
+        if (KEYBOARD_STRUCTURE[i][j].shiftSensitive) {
+          key.classList.add('non-shift-key');
+          upperCaseKey.classList.add('non-shift-key');
+
+          const shiftKey = document.createElement('div');
+          shiftKey.classList.add('key', 'shift-key');
+          const code = KEYBOARD_STRUCTURE[i][j].code;
+          shiftKey.innerText = String.fromCharCode(KEY_MAP[code]['shiftWhich']);
+          shiftKey.style['flex-grow'] = KEYBOARD_STRUCTURE[i][j].grow;
+          shiftKey.dataset.code = code;
+          container.append(shiftKey);
+        }
+
         row.append(container);
 
+        // russian character
         const altContainer = document.createElement('div');
         altContainer.classList.add('alt-key');
 
@@ -49,13 +65,28 @@ function buildKeyboard() {
         altKey.dataset.code = altKeyCode;
         altContainer.append(altKey);
 
-        const alterUpperCaseKey = document.createElement('div');
-        alterUpperCaseKey.classList.add('key', 'upper-case-key');
-        alterUpperCaseKey.innerText =
+        const altUpperCaseKey = document.createElement('div');
+        altUpperCaseKey.classList.add('key', 'upper-case-key');
+        altUpperCaseKey.innerText =
         String.fromCharCode(KEY_MAP[code]['altWhich']).toUpperCase();
-        alterUpperCaseKey.style['flex-grow'] = KEYBOARD_STRUCTURE[i][j].grow;
-        alterUpperCaseKey.dataset.code = code;
-        altContainer.append(alterUpperCaseKey);
+        altUpperCaseKey.style['flex-grow'] = KEYBOARD_STRUCTURE[i][j].grow;
+        altUpperCaseKey.dataset.code = code;
+        altContainer.append(altUpperCaseKey);
+
+        if (KEYBOARD_STRUCTURE[i][j].shiftSensitive &&
+           altKey.innerText == altUpperCaseKey.innerText) {
+          altKey.classList.add('non-shift-key');
+          altUpperCaseKey.classList.add('non-shift-key');
+
+          const shiftKey = document.createElement('div');
+          shiftKey.classList.add('key', 'shift-key');
+          const code = KEYBOARD_STRUCTURE[i][j].code;
+          shiftKey.innerText =
+          String.fromCharCode(KEY_MAP[code]['altShiftWhich']);
+          shiftKey.style['flex-grow'] = KEYBOARD_STRUCTURE[i][j].grow;
+          shiftKey.dataset.code = code;
+          altContainer.append(shiftKey);
+        }
 
         row.append(altContainer);
       } else {
@@ -66,6 +97,18 @@ function buildKeyboard() {
         key.style['flex-grow'] = KEYBOARD_STRUCTURE[i][j].grow;
         key.dataset.code = code;
         row.append(key);
+
+        if (KEYBOARD_STRUCTURE[i][j].shiftSensitive) {
+          key.classList.add('non-shift-key');
+
+          const shiftKey = document.createElement('div');
+          shiftKey.classList.add('key', 'shift-key');
+          const code = KEYBOARD_STRUCTURE[i][j].code;
+          shiftKey.innerText = String.fromCharCode(KEY_MAP[code]['shiftWhich']);
+          shiftKey.style['flex-grow'] = KEYBOARD_STRUCTURE[i][j].grow;
+          shiftKey.dataset.code = code;
+          row.append(shiftKey);
+        }
       }
     }
 
@@ -92,31 +135,40 @@ function toggleUpperCase() {
   capsLockIsOn = !capsLockIsOn;
 }
 
+function toggleShiftKeys() {
+  document.querySelector('#keyboard').classList.toggle('shift-enabled');
+}
+
+function toggleKeysWithCode(code, remove = false) {
+  const keys = document.querySelectorAll(`div[data-code="${code}"]`);
+  if (keys.length) {
+    for (const key of keys) {
+      key.classList[remove ? 'remove': 'toggle']('pressed');
+    }
+  } else if (keys.classList) {
+    keys.classList[remove ? 'remove': 'toggle']('pressed');
+  }
+}
+
 function putKeyboardEventHandlers() {
   document.addEventListener('keydown', (event) => {
     const code = event.code;
-
     if (!code) return;
 
     switch (code) {
-      case (KEY_MAP[code]['altWhich']):
-      { // eslint-disable-next-line max-len
-        document.querySelector(`div[data-code="${code}"]${capsLockIsOn ? '.upper-case-key':'.lower-case-key'}`)
-            .classList.toggle('pressed');
-        break;
-      }
       case 'ShiftLeft':
       case 'ShiftRight': {
         toggleUpperCase();
-      }
-      case 'Tab': {
-        event.preventDefault();
-        document.querySelector('div[data-code="Tab"]')
-            .dispatchEvent(new KeyboardEvent('mouseup', KEY_MAP[code]));
+        toggleShiftKeys();
+
+        toggleKeysWithCode(code);
+        break;
       }
       default: {
+        event.preventDefault();
         document.querySelector(`div[data-code="${code}"]`)
-            .classList.toggle('pressed');
+            .dispatchEvent(new KeyboardEvent('mouseup', KEY_MAP[code]));
+        toggleKeysWithCode(code);
       }
     }
   }, false);
@@ -124,18 +176,10 @@ function putKeyboardEventHandlers() {
   document.addEventListener('keyup', (event) => {
     const code = event.code;
 
-    if (!code) return;
-
     switch (code) {
       case 'CapsLock':
       {
         toggleUpperCase();
-        break;
-      }
-      case (KEY_MAP[code]['altWhich']):
-      { // eslint-disable-next-line max-len
-        document.querySelector(`div[data-code="${code}"]${capsLockIsOn ? '.upper-case-key':'.lower-case-key'}`)
-            .classList.remove('pressed');
         break;
       }
       case 'ControlLeft':
@@ -149,11 +193,10 @@ function putKeyboardEventHandlers() {
       case 'ShiftLeft':
       case 'ShiftRight': {
         toggleUpperCase();
+        toggleShiftKeys();
       }
       default: {
-        document.querySelector(`div[data-code="${code}"]`)
-            .classList.remove('pressed');
-        break;
+        toggleKeysWithCode(code, true);
       }
     }
   }, false);
@@ -274,11 +317,21 @@ function putKeyClickEventHandlers() {
         default:
         {
           let newChar;
+          let charCode;
           if (!isEnglish && KEY_MAP[code]['altWhich']) {
-            newChar = String.fromCharCode( KEY_MAP[code]['altWhich']);
+            if (capsLockIsOn && KEY_MAP[code]['altShiftWhich']) {
+              charCode = KEY_MAP[code]['altShiftWhich'];
+            } else {
+              charCode = KEY_MAP[code]['altWhich'];
+            }
           } else {
-            newChar = String.fromCharCode( KEY_MAP[code]['which']);
+            if (capsLockIsOn && KEY_MAP[code]['shiftWhich']) {
+              charCode = KEY_MAP[code]['shiftWhich'];
+            } else {
+              charCode = KEY_MAP[code]['which'];
+            }
           }
+          newChar = String.fromCharCode(charCode);
           if (capsLockIsOn) newChar = newChar.toUpperCase();
 
           if (textarea != document.activeElement) {
