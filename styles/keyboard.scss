@@ -1,5 +1,17 @@
 @use "./variables" as variables;
 
+
+@keyframes btn-pressed {
+    from {
+        border-radius: 3px;
+        background-color: variables.$key-hovered-color;
+    }
+    to {
+        border-radius: 50px;
+        background-color: variables.$border-color;
+    }
+  }
+
 #keyboard {
     width: 704px;
     margin: 0 auto;
@@ -29,9 +41,14 @@
             border-radius: 3px;
             cursor: pointer;
             user-select: none;
-            transition: background-color 0.3s;
+
+          &:hover{
+            background-color: variables.$key-hovered-color;
+          }
 
             &.pressed {
+                animation: 0.5s btn-pressed;
+                border-radius: 50px;
                 background-color: variables.$border-color;
             }
         }
