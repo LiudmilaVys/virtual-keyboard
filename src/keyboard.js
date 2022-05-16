@@ -177,6 +177,7 @@ export class Keyboard {
 
       if (!code) {
         this.#completeKeyAction();
+        this.#toggleUpperCase(!this.#capsLockIsOn);
       }
     }, false);
   }
@@ -196,9 +197,15 @@ export class Keyboard {
     window.localStorage.setItem(this.#USER_PREF.LANG_RUS, !this.#isEnglish);
   };
 
-  #toggleUpperCase() {
-    document.querySelector('#keyboard').classList.toggle('upper-case');
-    this.#capsLockIsOn = !this.#capsLockIsOn;
+  #toggleUpperCase(reset = false) {
+    document.querySelector('#keyboard')
+        .classList[reset ? 'remove': 'toggle']('upper-case');
+
+    if (reset) {
+      this.#capsLockIsOn = false;
+    } else {
+      this.#capsLockIsOn = !this.#capsLockIsOn;
+    }
   };
 
   #toggleShiftKeys() {
